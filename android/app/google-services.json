@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "352920723261",
+    "project_id": "olx-app-eae23",
+    "storage_bucket": "olx-app-eae23.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:352920723261:android:9a4c41b645bb5cc3f9af54",
+        "android_client_info": {
+          "package_name": "br.com.damasceno.olx"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "352920723261-ars8u65dfvkafuqo3fcfhtq451riuo3s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKVOwxI5J1nHTFPe3BGxk6oxRpxfD5VoU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "352920723261-ars8u65dfvkafuqo3fcfhtq451riuo3s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
