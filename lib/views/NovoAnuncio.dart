@@ -1,10 +1,16 @@
 import 'dart:io';
 
 import 'package:brasil_fields/brasil_fields.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:olx/models/Anuncio.dart';
 import 'package:olx/views/widgets/BotaoCustomizado.dart';
+import 'package:olx/views/widgets/InputCustomizado.dart';
 import 'package:validadores/validadores.dart';
+import 'package:flutter/services.dart';
 
 class NovoAnuncio extends StatefulWidget {
   @override
@@ -19,6 +25,8 @@ class _NovoAnuncioState extends State<NovoAnuncio> {
   List<DropdownMenuItem<String>> _listaItensDropEstados = List();
   List<DropdownMenuItem<String>> _listaItensDropCategorias = List();
   final _formKey = GlobalKey<FormState>();
+  Anuncio _anuncio;
+  BuildContext _dialogContext;
 
   String _itemSelecionadoEstado;
   String _itemSelecionadoCategoria;
@@ -34,10 +42,78 @@ class _NovoAnuncioState extends State<NovoAnuncio> {
     }
   }
 
+  _salvarAnuncio() async {
+
+    _abrirDialog(_dialogContext);
+
+    //Upload imagens no Storage
+    await _uploadImagens();
+
+    //Salvar anuncio no Firestore
+    FirebaseAuth auth = FirebaseAuth.instance;
+    FirebaseUser usuarioLogado = await auth.currentUser();
+    String idUsuarioLogado = usuarioLogado.uid;
+
+    Firestore db = Firestore.instance;
+    db.collection("meus_anuncios")
+    .document(idUsuarioLogado)
+    .collection("anuncios")
+    .document(_anuncio.id)
+    .setData(_anuncio.toMap()).then((_) {
+
+       Navigator.pop(_dialogContext);
+       Navigator.pushReplacementNamed(context, "/meus-anuncios");
+
+    });
+  }
+
+  Future _uploadImagens() async {
+
+    FirebaseStorage storage = FirebaseStorage.instance;
+    StorageReference pastaRaiz = storage.ref();
+
+    for(var imagem in _listaImagens){
+
+      String nomeImagem = DateTime.now().millisecondsSinceEpoch.toString();
+      StorageReference arquivo = pastaRaiz
+          .child("meus_anuncios")
+          .child(_anuncio.id)
+          .child(nomeImagem);
+
+      StorageUploadTask uploadTask = arquivo.putFile(imagem);
+      StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+
+      String url = await taskSnapshot.ref.getDownloadURL();
+      _anuncio.fotos.add(url);
+
+    }
+  }
+
+  _abrirDialog(BuildContext context){
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context){
+            return AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 20),
+                  Text("Salvando anúncio...")
+                ],
+              ),
+            );
+        }
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _carregarItensDropdown();
+
+    _anuncio = Anuncio();
   }
 
   _carregarItensDropdown(){
@@ -214,6 +290,9 @@ class _NovoAnuncioState extends State<NovoAnuncio> {
                         child: DropdownButtonFormField(
                           value: _itemSelecionadoEstado,
                           hint: Text("Estados"),
+                          onSaved: (estado){
+                            _anuncio.estado = estado;
+                          },
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 20
@@ -236,6 +315,9 @@ class _NovoAnuncioState extends State<NovoAnuncio> {
                         child: DropdownButtonFormField(
                           value: _itemSelecionadoCategoria,
                           hint: Text("Categorias"),
+                          onSaved: (categoria){
+                             _anuncio.categoria = categoria;
+                          },
                           style: TextStyle(
                               color: Colors.black,
                               fontSize: 20
@@ -254,11 +336,87 @@ class _NovoAnuncioState extends State<NovoAnuncio> {
                     ),
                   ],
                 ),
-                Text("Caixas de textos"),
+                Padding(
+                    padding: EdgeInsets.only(bottom: 15, top: 15),
+                    child: InputCustomizado(
+                      hint: "Título",
+                      onSaved: (titulo){
+                        _anuncio.titulo = titulo;
+                      },
+                      validator: (valor){
+                         return Validador()
+                              .add(Validar.OBRIGATORIO, msg: "Campo obrigatório")
+                              .valido(valor);
+                      },
+                    ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 15),
+                  child: InputCustomizado(
+                    hint: "Preço",
+                    onSaved: (preco){
+                      _anuncio.preco = preco;
+                    },
+                    type: TextInputType.number,
+                    inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        RealInputFormatter(centavos: true)
+                    ],
+                    validator: (valor){
+                      return Validador()
+                          .add(Validar.OBRIGATORIO, msg: "Campo obrigatório")
+                          .valido(valor);
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 15),
+                  child: InputCustomizado(
+                    hint: "Telefone",
+                    onSaved: (telefone){
+                      _anuncio.telefone = telefone;
+                    },
+                    type: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      TelefoneInputFormatter()
+                    ],
+                    validator: (valor){
+                      return Validador()
+                          .add(Validar.OBRIGATORIO, msg: "Campo obrigatório")
+                          .valido(valor);
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 15),
+                  child: InputCustomizado(
+                    hint: "Descrição (200 caracteres)",
+                    onSaved: (descricao){
+                      _anuncio.descricao = descricao;
+                    },
+                    maxLines: null,
+                    validator: (valor){
+                      return Validador()
+                          .add(Validar.OBRIGATORIO, msg: "Campo obrigatório")
+                          .maxLength(200, msg: "Máximo de 200 caracteres")
+                          .valido(valor);
+                    },
+                  ),
+                ),
                 BotaoCustomizado(
                   texto: "Cadastrar anúncio",
                   onPressed: (){
                     if(_formKey.currentState.validate()){
+
+                      //salvar campos
+                      _formKey.currentState.save();
+
+                      //Configura dialog context
+                      _dialogContext = context;
+
+                      //salvar anuncio
+                      _salvarAnuncio();
 
                     }
                   },
