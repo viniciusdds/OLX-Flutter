@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:olx/models/Anuncio.dart';
+import 'package:olx/util/Configuracoes.dart';
 import 'package:olx/views/widgets/BotaoCustomizado.dart';
 import 'package:olx/views/widgets/InputCustomizado.dart';
 import 'package:validadores/validadores.dart';
@@ -61,9 +62,15 @@ class _NovoAnuncioState extends State<NovoAnuncio> {
     .document(_anuncio.id)
     .setData(_anuncio.toMap()).then((_) {
 
-       Navigator.pop(_dialogContext);
-       Navigator.pushReplacementNamed(context, "/meus-anuncios");
+      //salvar anúncio público
+      db.collection("anuncios")
+        .document(_anuncio.id)
+        .setData(_anuncio.toMap()).then((_){
 
+        Navigator.pop(_dialogContext);
+        Navigator.pop(context);
+
+      });
     });
   }
 
@@ -113,38 +120,16 @@ class _NovoAnuncioState extends State<NovoAnuncio> {
     super.initState();
     _carregarItensDropdown();
 
-    _anuncio = Anuncio();
+    _anuncio = Anuncio.gerarId();
   }
 
   _carregarItensDropdown(){
 
     //Categorias
-    _listaItensDropCategorias.add(
-      DropdownMenuItem(child: Text("Automóvel"), value: "auto")
-    );
-
-    _listaItensDropCategorias.add(
-        DropdownMenuItem(child: Text("Imóvel"), value: "imovel")
-    );
-
-    _listaItensDropCategorias.add(
-        DropdownMenuItem(child: Text("Eletrônicos"), value: "eletro")
-    );
-
-    _listaItensDropCategorias.add(
-        DropdownMenuItem(child: Text("Moda"), value: "moda")
-    );
-
-    _listaItensDropCategorias.add(
-        DropdownMenuItem(child: Text("Esportes"), value: "esportes")
-    );
+    _listaItensDropCategorias = Configuracoes.getCategorias();
 
      //Estados
-    for(var estado in Estados.listaEstadosSigla){
-      _listaItensDropEstados.add(
-        DropdownMenuItem(child: Text(estado), value: estado)
-      );
-    }
+    _listaItensDropEstados = Configuracoes.getEstados();
   }
 
   @override
@@ -295,7 +280,7 @@ class _NovoAnuncioState extends State<NovoAnuncio> {
                           },
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 20
+                            fontSize: 18
                           ),
                           items: _listaItensDropEstados,
                           validator: (valor){
@@ -320,7 +305,7 @@ class _NovoAnuncioState extends State<NovoAnuncio> {
                           },
                           style: TextStyle(
                               color: Colors.black,
-                              fontSize: 20
+                              fontSize: 18
                           ),
                           items: _listaItensDropCategorias,
                           validator: (valor){
