@@ -14,7 +14,7 @@ class InputCustomizado extends StatelessWidget {
   final Function(String) onSaved;
 
   InputCustomizado({
-    @required this.controller,
+    this.controller,
     @required this.hint,
     this.obscure = false,
     this.autofocus = false,
