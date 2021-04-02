@@ -144,6 +144,12 @@ class _LoginState extends State<Login> {
                       _validarCampos();
                     },
                 ),
+                FlatButton(
+                    onPressed: (){
+                      Navigator.pushReplacementNamed(context, "/");
+                    },
+                    child: Text("Ir para anúncios")
+                ),
                 Padding(
                     padding: EdgeInsets.only(top: 20),
                     child: Text(_mensagemErro, style: TextStyle(

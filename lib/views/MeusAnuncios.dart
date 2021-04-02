@@ -77,11 +77,13 @@ class _MeusAnunciosState extends State<MeusAnuncios> {
       appBar: AppBar(
           title: Text("Meus Anúncios"),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton.extended(
         foregroundColor: Colors.white,
-        child: Icon(
+        icon: Icon(
           Icons.add
         ),
+        label: Text("Adicionar"),
         onPressed: (){
           Navigator.pushNamed(context, "/novo-anuncio");
         },

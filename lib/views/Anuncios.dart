@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:olx/models/Anuncio.dart';
 import 'package:olx/util/Configuracoes.dart';
 import 'package:olx/views/widgets/ItemAnuncio.dart';
+import 'package:olx/main.dart';
 
 class Anuncios extends StatefulWidget {
   @override
@@ -117,6 +118,16 @@ class _AnunciosState extends State<Anuncios> {
 
   @override
   Widget build(BuildContext context) {
+
+    var carregandoDados = Center(
+      child: Column(
+        children: [
+          Text("Carregando anúncios"),
+          CircularProgressIndicator()
+        ],
+      ),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text("OLX"),
@@ -145,7 +156,7 @@ class _AnunciosState extends State<Anuncios> {
                     child: DropdownButtonHideUnderline(
                       child: Center(
                         child: DropdownButton(
-                          iconEnabledColor: Color(0xff9c27b0),
+                          iconEnabledColor: temaPadrao.primaryColor,
                           value: _itemSelecionadoEstado,
                           items: _listaItensDropEstados,
                           style: TextStyle(
@@ -173,7 +184,7 @@ class _AnunciosState extends State<Anuncios> {
                     child: DropdownButtonHideUnderline(
                       child: Center(
                         child: DropdownButton(
-                          iconEnabledColor: Color(0xff9c27b0),
+                          iconEnabledColor: temaPadrao.primaryColor,
                           value: _itemSelecionadoCategoria,
                           items: _listaItensDropCategorias,
                           style: TextStyle(
@@ -200,9 +211,8 @@ class _AnunciosState extends State<Anuncios> {
                 switch(snapshot.connectionState){
                   case ConnectionState.none:
                   case ConnectionState.waiting:
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return carregandoDados;
+                  break;
                   case ConnectionState.active:
                   case ConnectionState.done:
 
@@ -230,7 +240,11 @@ class _AnunciosState extends State<Anuncios> {
                                return ItemAnuncio(
                                  anuncio: anuncio,
                                  onTapItem: (){
-
+                                    Navigator.pushNamed(
+                                        context,
+                                        "/detalhes-anuncio",
+                                        arguments: anuncio
+                                    );
                                  },
                                );
 
